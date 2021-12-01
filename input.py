@@ -9,7 +9,3 @@ P = 0.95
 E = 0.01
 R1 = 3
 R2 = 5
-
-
-def f(x):
-	return math.sin(x) + 0.5

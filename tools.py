@@ -1,5 +1,11 @@
-from prettytable import PrettyTable
+from input import *
+import random
 import copy
+
+
+def add_fun_to_plot(p, x, y, lab = 'function', mark = ''):
+	p.plot(x, y, label = lab, marker = mark)
+	return p
 
 
 def norm_list(v):
