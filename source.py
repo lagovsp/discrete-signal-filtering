@@ -1,12 +1,7 @@
 from prettytable import PrettyTable
 import matplotlib.pyplot as mpl
-from matplotlib import pyplot as plt
 from input import *
-from sty import *
 import random
-
-fg.o = Style(RgbFg(255, 150, 50))
-bg.o = Style(RgbBg(255, 150, 50))
 
 
 def f(x):
@@ -18,10 +13,6 @@ Qk = [random.uniform(-A, A) for k in range(K + 1)]
 F = [f(X_MIN + k * (X_MAX - X_MIN) / K) for k in range(K + 1)]
 FN = [F[k] + Qk[k] for k in range(K + 1)]
 LAMBDAS = [l / L for l in range(L + 1)]
-
-
-def f_noisy(k):
-	return F[k] + Qk[k]
 
 
 def m_from(r):
@@ -60,7 +51,7 @@ def filtered_signal_list(a):
 	M = m_from(len(a))
 	fs = [0] * (K + 1)
 	for k in range(M, K - M + 1):
-		fs[k] = sum([a[j + M - k] / f_noisy(j) for j in range(k - M, k + M + 1)]) ** (-1)
+		fs[k] = sum([(a[j + M - k] / FN[j]) for j in range(k - M, k + M + 1)]) ** (-1)
 	return fs
 
 
@@ -79,47 +70,51 @@ def random_search(p, r, lam, e = 0.01):
 		a = rand_a(r)
 		if it == 0:
 			best = [lam, dist(a), a, w(a), delta(a), j(a, lam)]
-		elif dist(a) < best[1]:
+		elif j(a, lam) < best[5]:
 			best = [lam, dist(a), a, w(a), delta(a), j(a, lam)]
 	return best
 
 
-def stochastic_filtering(rs, e = E):
-	mpl.plot(Xk, FN, label = 'noisy')
-	mpl.plot(Xk, F, label = 'f(x) = sin(x) + 0.5', )
+def add_fun_to_plot(p, x, y, lab = 'function', mark = ''):
+	p.plot(x, y, label = lab, marker = mark)
+	return p
 
-	for rad in rs:
-		results = passive_search(LAMBDAS, rad, e = e)
 
-	plt.title(f'Dots for r = {r}')
+def show_table(title, labs, results):
+	table = PrettyTable()
+	table.title = title
+	table.add_column(labs[0], [item[0] for item in results])
+	table.add_column(labs[1], [item[1] for item in results])
+	table.add_column(labs[2], [item[2] for item in results])
+	table.add_column(labs[3], [item[3] for item in results])
+	table.add_column(labs[4], [item[4] for item in results])
+	table.add_column(labs[5], [item[5] for item in results])
+	print(table)
+
+
+def stochastic_filtering(r, e = E):
+	results = passive_search(LAMBDAS, r, e = e)
+
+	mpl.title(f'Dots for R = {r}')
+	mpl.xlabel('w')
+	mpl.ylabel('delta')
 	for i in range(len(results[3])):
-		plt.scatter([item[3] for item in results], [item[4] for item in results])
-	plt.xlabel('w')
-	plt.ylabel('delta')
+		mpl.scatter([item[3] for item in results], [item[4] for item in results])
+	mpl.show()
 
-	table = PrettyTable()
-	table.title = f'Stochastic filtering with Euclidean metric for R = {rad}, e = {e}'
-	table.add_column('h', LAMBDAS)
-	table.add_column('dist', [item[1] for item in results])
-	table.add_column('alpha', [item[2] for item in results])
-	table.add_column('w', [item[3] for item in results])
-	table.add_column('delta', [item[4] for item in results])
-	table.add_column('J', [item[5] for item in results])
-	print(table)
-
+	labels = ['h', 'dist', 'alpha', 'w', 'delta', 'J']
+	show_table(f'Stochastic filtering with Euclidean metric for R = {r}, e = {e}',
+		labels, results)
 	results.sort(key = lambda x: x[1])
+	show_table(f'Results with minimum distance for R = {r}, e = {e}',
+		labels, [item for item in [results[0]]])
 
-	table = PrettyTable()
-	table.title = f'Results with minimum distance for R = {rad}, e = {e}'
-	table.add_column('h', [results[0][0]])
-	table.add_column('dist', [results[0][1]])
-	table.add_column('alpha', [results[0][2]])
-	table.add_column('w', [results[0][3]])
-	table.add_column('delta', [results[0][4]])
-	table.add_column('J', [results[0][5]])
-	print(table)
-
-	plt.show()
+	filtered = filtered_signal_list(results[0][2])
+	mpl.title(f'Functions for R = {r}')
+	mpl.plot(Xk, F, label = 'f(x) = sin(x) + 0.5')
+	mpl.plot(Xk, FN, label = 'noisy')
+	mpl.plot(Xk, filtered, label = 'filtered')
 	mpl.legend()
 	mpl.show()
+
 	return 0
