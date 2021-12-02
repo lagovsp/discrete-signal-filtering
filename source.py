@@ -83,12 +83,8 @@ def add_fun_to_plot(p, x, y, lab = 'function', mark = ''):
 def show_table(title, labs, results):
 	table = PrettyTable()
 	table.title = title
-	table.add_column(labs[0], [item[0] for item in results])
-	table.add_column(labs[1], [item[1] for item in results])
-	table.add_column(labs[2], [item[2] for item in results])
-	table.add_column(labs[3], [item[3] for item in results])
-	table.add_column(labs[4], [item[4] for item in results])
-	table.add_column(labs[5], [item[5] for item in results])
+	for i in range(6):
+		table.add_column(labs[i], [item[i] for item in results])
 	print(table)
 
 
