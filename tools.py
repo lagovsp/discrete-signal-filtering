@@ -1,3 +1,4 @@
+from prettytable import PrettyTable
 from input import *
 import random
 import copy
